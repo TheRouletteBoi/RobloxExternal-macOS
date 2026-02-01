@@ -4,6 +4,11 @@ A macOS ESP providing **ESP support for any Roblox game**.
 
 ---
 
+## Preview
+![Screenshot 2026-01-31 at 4 39 17 PM](https://github.com/user-attachments/assets/3c5bbd4e-d86a-40bc-ad41-9c9d2685eca6)
+
+---
+
 ## System Requirements (SIP)
 
 To inject into protected processes on macOS, **System Integrity Protection (SIP) must be disabled**.
