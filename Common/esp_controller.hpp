@@ -51,8 +51,12 @@ public:
     bool is_key_code_down(uint8_t keycode) const;
     bool was_key_code_pressed(uint8_t keycode);
 
+    bool is_left_mouse_down_raw() const;
+    bool is_right_mouse_down_raw() const;
+    // mouse state to avoid titlebar clicks
     bool is_left_mouse_down() const;
     bool is_right_mouse_down() const;
+    bool is_mouse_in_content() const;
 
     float mouse_x() const;
     float mouse_y() const;
@@ -64,6 +68,7 @@ public:
     int64_t window_number() const;
     bool is_app_active() const;
     std::array<char, 256> window_title() const;
+    float titlebar_height() const;
 
     bool capture_window(const std::string& output_path, uint32_t timeout_ms = 5000);
     std::vector<uint8_t> capture_window_to_memory(uint32_t timeout_ms = 5000);
@@ -266,12 +271,26 @@ inline bool ESPController::was_key_code_pressed(uint8_t keycode) {
     return false;
 }
 
-inline bool ESPController::is_left_mouse_down() const {
+inline bool ESPController::is_left_mouse_down_raw() const {
     return m_shm.state().left_mouse_down.load();
 }
 
-inline bool ESPController::is_right_mouse_down() const {
+inline bool ESPController::is_right_mouse_down_raw() const {
     return m_shm.state().right_mouse_down.load();
+}
+
+inline bool ESPController::is_mouse_in_content() const {
+    const auto& state = m_shm.state();
+    return state.mouse_x >= 0 && state.mouse_x < state.window_w &&
+           state.mouse_y >= 0 && state.mouse_y < state.window_h;
+}
+
+inline bool ESPController::is_left_mouse_down() const {
+    return is_left_mouse_down_raw() && is_mouse_in_content();
+}
+
+inline bool ESPController::is_right_mouse_down() const {
+    return is_right_mouse_down_raw() && is_mouse_in_content();
 }
 
 inline float ESPController::mouse_x() const {
@@ -308,6 +327,10 @@ inline bool ESPController::is_app_active() const {
 
 inline std::array<char, 256> ESPController::window_title() const {
     return m_shm.state().title;
+}
+
+inline float ESPController::titlebar_height() const {
+    return m_shm.state().titlebar_height;
 }
 
 inline bool ESPController::capture_window(const std::string& output_path, uint32_t timeout_ms) {

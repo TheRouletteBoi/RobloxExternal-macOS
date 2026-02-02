@@ -108,6 +108,7 @@ struct ESPState {
     float window_h = 0.0f;
     float window_x = 0.0f;
     float window_y = 0.0f;
+    float titlebar_height = 0.0f;
     int64_t window_number = 0;
     std::array<char, 256> title;
 

@@ -19,6 +19,7 @@ typedef struct {
     float height;
     float x;
     float y;
+    float titlebar_height;
     int64_t window_number;
     bool is_active;
     std::array<char, 256> title;

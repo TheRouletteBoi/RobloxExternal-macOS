@@ -62,7 +62,7 @@ ESPManager::ESPManager(const std::string& shm_path)
     setup_event_monitors();
 
     setup_menu();
-    
+
     std::println("ESP Manager: Initialized successfully");
 }
 
@@ -80,15 +80,15 @@ void ESPManager::run() {
     m_esp_thread = std::thread([this]() { esp_render_loop(); });
 
     m_shm.state().dylib_ready = true;
-    
+
     std::println("ESP Manager: Running");
 }
 
 void ESPManager::stop() {
     if (!m_running.exchange(false)) return;
-    
+
     std::println("ESP Manager: Stopping...");
-    
+
     // Wake up waiting threads by posting to their signals
     SharedSemaphore::post(&m_shm.commands().input_signal);
     SharedSemaphore::post(&m_shm.commands().capture_signal);
@@ -96,7 +96,7 @@ void ESPManager::stop() {
     if (m_worker_thread.joinable()) m_worker_thread.join();
     if (m_capture_thread.joinable()) m_capture_thread.join();
     if (m_esp_thread.joinable()) m_esp_thread.join();
-    
+
     std::println("ESP Manager: Stopped");
 }
 
@@ -122,11 +122,11 @@ bool ESPManager::init_esp_view() {
 
 void ESPManager::worker_loop() {
     std::println("Worker thread: Started");
-    
+
     while (m_running) {
         // Wait for signal from injector (or timeout for periodic tasks)
         bool signaled = SharedSemaphore::wait_for(&m_shm.commands().input_signal, 100);
-        
+
         if (!m_running) break;
 
         WindowInfo info;
@@ -136,6 +136,7 @@ void ESPManager::worker_loop() {
             state.window_h = info.height;
             state.window_x = info.x;
             state.window_y = info.y;
+            state.titlebar_height = info.titlebar_height;
             state.window_number = info.window_number;
             state.app_is_active = info.is_active;
             state.title = info.title;

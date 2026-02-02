@@ -164,6 +164,7 @@ bool shim_get_window_info(WindowInfo* out_info) {
         out_info->height = contentView.frame.size.height;
         out_info->x = window.frame.origin.x;
         out_info->y = window.frame.origin.y;
+        out_info->titlebar_height = window.frame.size.height - [window contentRectForFrameRect:window.frame].size.height;
         out_info->window_number = window.windowNumber;
         out_info->is_active = NSApp.isActive;
 
