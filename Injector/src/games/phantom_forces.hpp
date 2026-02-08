@@ -70,7 +70,7 @@ public:
 
         // Get camera subject
         vm_address_t camera_subject = 0;
-        memory::read_value(m_task, camera.address() + roblox::offsets::CAMERA_CAMERASUBJECT, camera_subject);
+        memory::read_value(m_task, camera.address() + offsets::Camera::CAMERA_CAMERASUBJECT, camera_subject);
 
         if (camera_subject == 0) {
             static int log_ctr = 0;
@@ -80,7 +80,7 @@ public:
 
         // Get parent of camera subject (this is the character model)
         vm_address_t my_character = 0;
-        memory::read_value(m_task, camera_subject + roblox::offsets::INSTANCE_PARENT, my_character);
+        memory::read_value(m_task, camera_subject + offsets::Instance::INSTANCE_PARENT, my_character);
 
         if (my_character == 0) {
             static int log_ctr = 0;
@@ -90,7 +90,7 @@ public:
 
         // Get primarypart of character (this is HRP)
         vm_address_t my_hrp_addr = 0;
-        memory::read_value(m_task, my_character + roblox::offsets::MODEL_PRIMARYPART, my_hrp_addr);
+        memory::read_value(m_task, my_character + offsets::ModelPrimative::MODEL_PRIMARYPART, my_hrp_addr);
 
         if (my_hrp_addr == 0) {
             static int log_ctr = 0;
@@ -157,7 +157,7 @@ public:
                 continue;
 
             vm_address_t self_ptr = 0;
-            memory::read_value(m_task, torso.address() + roblox::offsets::INSTANCE_SELF, self_ptr);
+            memory::read_value(m_task, torso.address() + offsets::Instance::INSTANCE_SELF, self_ptr);
             if (self_ptr != torso.address()) continue;
 
             target.character = enemy_model;
@@ -371,9 +371,9 @@ private:
         // Get CFrame addresses
         if (camera_part) {
             vm_address_t props = 0;
-            memory::read_value(m_task, camera_part.address() + roblox::offsets::BASEPART_PROPERTIES, props);
+            memory::read_value(m_task, camera_part.address() + offsets::BasePart::BASEPART_PROPERTIES, props);
             if (props != 0) {
-                m_cameraPartCFrameAddr = props + roblox::offsets::BASEPART_PROPS_CFRAME;
+                m_cameraPartCFrameAddr = props + offsets::Primitive::BASEPART_PROPS_CFRAME;
                 if (should_log) std::println("[PF CAM] camera_part cframe addr: {:#x}", m_cameraPartCFrameAddr);
             } else {
                 m_cameraPartCFrameAddr = 0;
@@ -385,9 +385,9 @@ private:
 
         if (trigger) {
             vm_address_t props = 0;
-            memory::read_value(m_task, trigger.address() + roblox::offsets::BASEPART_PROPERTIES, props);
+            memory::read_value(m_task, trigger.address() + offsets::BasePart::BASEPART_PROPERTIES, props);
             if (props != 0) {
-                m_triggerCFrameAddr = props + roblox::offsets::BASEPART_PROPS_CFRAME;
+                m_triggerCFrameAddr = props + offsets::Primitive::BASEPART_PROPS_CFRAME;
             }
         } else {
             m_triggerCFrameAddr = 0;

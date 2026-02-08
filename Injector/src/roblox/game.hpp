@@ -75,19 +75,18 @@ public:
     }
 
     uint64_t place_id() const {
-        auto image = macho::get_image_info(m_task, "RobloxPlayer");
-        if (image.base == 0)
+        if (!m_game)
             return 0;
-        
-        uint64_t pid = 0;
-        memory::read_value(m_task, image.base + offsets::PLACEID, pid);
-        return pid;
+
+        int64_t pid = 0;
+        memory::read_value(m_task, m_game.address() + offsets::DataModel::DATAMODEL_PLACEID, pid);
+        return static_cast<uint64_t>(pid);
     }
     
     std::optional<std::string> job_id() const {
         if (!m_game)
             return std::nullopt;
-        return read_rbx_string_at(m_task, m_game.address(), offsets::DATAMODEL_JOBID);
+        return read_rbx_string_at(m_task, m_game.address(), offsets::DataModel::DATAMODEL_JOBID);
     }
 
     static GameContext wait_for_game(task_t task, int timeout_seconds = 60) {
@@ -148,61 +147,58 @@ private:
             return {};
         }
         m_image_base = image.base;
-        
-        vm_address_t what_game_points_to = image.base + offsets::WHAT_GAME_POINTS_TO;
 
-        return find_game_in_memory(what_game_points_to);
+        return find_game_in_memory();
     }
-    
-    Instance find_game_in_memory(vm_address_t what_game_points_to) {
+
+    Instance find_game_in_memory() {
         kern_return_t kr = KERN_SUCCESS;
         vm_address_t address = 0;
         vm_size_t size = 0;
         natural_t depth = 0;
         struct vm_region_submap_info_64 info;
         mach_msg_type_number_t info_count = VM_REGION_SUBMAP_INFO_COUNT_64;
-        
+
         while (kr == KERN_SUCCESS) {
             memset(&info, 0, sizeof(info));
+            info_count = VM_REGION_SUBMAP_INFO_COUNT_64;
             kr = vm_region_recurse_64(m_task, &address, &size, &depth,
                                      (vm_region_recurse_info_t)&info, &info_count);
-            
             if (kr != KERN_SUCCESS) break;
 
             if (info.user_tag == VM_MEMORY_IOACCELERATOR) {
-                auto game = scan_region_for_game(address, size, what_game_points_to);
-                if (game.is_valid()) {
-                    return game;
-                }
+                auto game = scan_region_for_game(address, size);
+                if (game.is_valid()) return game;
             }
-            
             address += size;
         }
-
         return {};
     }
-    
-    Instance scan_region_for_game(vm_address_t start, vm_size_t size, vm_address_t target_ptr) {
+
+    Instance scan_region_for_game(vm_address_t start, vm_size_t size) {
         std::vector<uint8_t> buffer(size);
-        if (!memory::read_bytes(m_task, start, buffer.data(), size)) {
+        if (!memory::read_bytes(m_task, start, buffer.data(), size))
             return {};
-        }
 
         for (size_t i = 0; i + 8 <= size; i += 8) {
-            vm_address_t value = *reinterpret_cast<vm_address_t*>(buffer.data() + i);
-            
-            if (value == target_ptr) {
-                vm_address_t possible_game = start + i;
+            vm_address_t candidate = start + i;
 
-                Instance inst(m_task, possible_game);
-                auto name = inst.name();
+            vm_address_t self = 0;
+            if (!memory::read_value(m_task, candidate + offsets::Instance::INSTANCE_SELF, self))
+                continue;
+            if (self != candidate)
+                continue;
 
-                if (name && (*name == "Ugc" || *name == "Game")) {
+            Instance inst(m_task, candidate);
+            auto name = inst.name();
+            if (name && (*name == "Ugc" || *name == "Game")) {
+                // should have children (Workspace, Players, ect)
+                auto children = inst.children();
+                if (children.size() > 10) {
                     return inst;
                 }
             }
         }
-        
         return {};
     }
 };

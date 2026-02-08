@@ -15,26 +15,26 @@ public:
     // Position/Rotation
     CFrame cframe() const {
         vm_address_t props_ptr = 0;
-        if (!memory::read_value(task(), address() + offsets::BASEPART_PROPERTIES, props_ptr)) {
+        if (!memory::read_value(task(), address() + offsets::BasePart::BASEPART_PROPERTIES, props_ptr)) {
             return {};
         }
         if (props_ptr == 0)
             return {};
         
         CFrame cf;
-        memory::read_value(task(), props_ptr + offsets::BASEPART_PROPS_CFRAME, cf);
+        memory::read_value(task(), props_ptr + offsets::Primitive::BASEPART_PROPS_CFRAME, cf);
         return cf;
     }
     
     bool set_cframe(const CFrame& cf) const {
         vm_address_t props_ptr = 0;
-        if (!memory::read_value(task(), address() + offsets::BASEPART_PROPERTIES, props_ptr)) {
+        if (!memory::read_value(task(), address() + offsets::BasePart::BASEPART_PROPERTIES, props_ptr)) {
             return false;
         }
         if (props_ptr == 0)
             return false;
         
-        return vm_write(task(), props_ptr + offsets::BASEPART_PROPS_CFRAME,
+        return vm_write(task(), props_ptr + offsets::Primitive::BASEPART_PROPS_CFRAME,
                        reinterpret_cast<vm_offset_t>(&cf), sizeof(cf)) == KERN_SUCCESS;
     }
     
@@ -51,79 +51,79 @@ public:
     // Velocity
     Vector3 velocity() const {
         vm_address_t props_ptr = 0;
-        if (!memory::read_value(task(), address() + offsets::BASEPART_PROPERTIES, props_ptr)) {
+        if (!memory::read_value(task(), address() + offsets::BasePart::BASEPART_PROPERTIES, props_ptr)) {
             return {};
         }
         if (props_ptr == 0)
             return {};
         
         Vector3 vel;
-        memory::read_value(task(), props_ptr + offsets::BASEPART_PROPS_VELOCITY, vel);
+        memory::read_value(task(), props_ptr + offsets::Primitive::BASEPART_PROPS_VELOCITY, vel);
         return vel;
     }
     
     bool set_velocity(const Vector3& vel) const {
         vm_address_t props_ptr = 0;
-        if (!memory::read_value(task(), address() + offsets::BASEPART_PROPERTIES, props_ptr)) {
+        if (!memory::read_value(task(), address() + offsets::BasePart::BASEPART_PROPERTIES, props_ptr)) {
             return false;
         }
         if (props_ptr == 0)
             return false;
         
-        return vm_write(task(), props_ptr + offsets::BASEPART_PROPS_VELOCITY,
+        return vm_write(task(), props_ptr + offsets::Primitive::BASEPART_PROPS_VELOCITY,
                        reinterpret_cast<vm_offset_t>(&vel), sizeof(vel)) == KERN_SUCCESS;
     }
     
     // Angular velocity
     Vector3 rotational_velocity() const {
         vm_address_t props_ptr = 0;
-        if (!memory::read_value(task(), address() + offsets::BASEPART_PROPERTIES, props_ptr)) {
+        if (!memory::read_value(task(), address() + offsets::BasePart::BASEPART_PROPERTIES, props_ptr)) {
             return {};
         }
         if (props_ptr == 0)
             return {};
         
         Vector3 rot_vel;
-        memory::read_value(task(), props_ptr + offsets::BASEPART_PROPS_ROTVELOCITY, rot_vel);
+        memory::read_value(task(), props_ptr + offsets::Primitive::BASEPART_PROPS_ROTVELOCITY, rot_vel);
         return rot_vel;
     }
 
     Vector3 size() const {
         vm_address_t props_ptr = 0;
-        if (!memory::read_value(task(), address() + offsets::BASEPART_PROPERTIES, props_ptr)) {
+        if (!memory::read_value(task(), address() + offsets::BasePart::BASEPART_PROPERTIES, props_ptr)) {
             return {};
         }
         if (props_ptr == 0)
             return {};
         
         Vector3 sz;
-        memory::read_value(task(), props_ptr + offsets::BASEPART_PROPS_SIZE, sz);
+        memory::read_value(task(), props_ptr + offsets::Primitive::BASEPART_PROPS_SIZE, sz);
         return sz;
     }
 
     bool can_collide() const {
         vm_address_t props_ptr = 0;
-        if (!memory::read_value(task(), address() + offsets::BASEPART_PROPERTIES, props_ptr)) {
+        if (!memory::read_value(task(), address() + offsets::BasePart::BASEPART_PROPERTIES, props_ptr)) {
             return true;
         }
         if (props_ptr == 0)
             return true;
         
         uint8_t value = 0;
-        memory::read_value(task(), props_ptr + offsets::BASEPART_PROPS_CANCOLLIDE, value);
+        memory::read_value(task(), props_ptr + offsets::Primitive::BASEPART_PROPS_CANCOLLIDE, value);
         return value != 0;
     }
     
     bool set_can_collide(bool collide) const {
         vm_address_t props_ptr = 0;
-        if (!memory::read_value(task(), address() + offsets::BASEPART_PROPERTIES, props_ptr)) {
+        if (!memory::read_value(task(), address() + offsets::BasePart::BASEPART_PROPERTIES, props_ptr)) {
             return false;
         }
         if (props_ptr == 0)
             return false;
         
         uint8_t value = collide ? 1 : 0;
-        return vm_write(task(), props_ptr + offsets::BASEPART_PROPS_CANCOLLIDE,
+        return vm_write(task(), props_ptr + offsets::Primitive::BASEPART_PROPS_CANCOLLIDE,
                        reinterpret_cast<vm_offset_t>(&value), 1) == KERN_SUCCESS;
     }
 };
@@ -135,32 +135,32 @@ public:
     Humanoid(const Instance& inst) : Instance(inst) {}
     
     float health() const {
-        return read_property<float>(offsets::HUMANOID_HEALTH).value_or(0.0f);
+        return read_property<float>(offsets::Humanoid::HUMANOID_HEALTH).value_or(0.0f);
     }
     
     bool set_health(float value) const {
-        return write_property(offsets::HUMANOID_HEALTH, value);
+        return write_property(offsets::Humanoid::HUMANOID_HEALTH, value);
     }
     
     float walk_speed() const {
-        return read_property<float>(offsets::HUMANOID_WALKSPEED).value_or(16.0f);
+        return read_property<float>(offsets::Humanoid::HUMANOID_WALKSPEED).value_or(16.0f);
     }
     
     bool set_walk_speed(float value) const {
-        return write_property(offsets::HUMANOID_WALKSPEED, value);
+        return write_property(offsets::Humanoid::HUMANOID_WALKSPEED, value);
     }
     
     float hip_height() const {
-        return read_property<float>(offsets::HUMANOID_HIPHEIGHT).value_or(2.0f);
+        return read_property<float>(offsets::Humanoid::HUMANOID_HIPHEIGHT).value_or(2.0f);
     }
     
     std::optional<std::string> display_name() const {
-        return read_rbx_string_at(task(), address(), offsets::HUMANOID_DISPLAYNAME);
+        return read_rbx_string_at(task(), address(), offsets::Humanoid::HUMANOID_DISPLAYNAME);
     }
     
     Instance seat_part() const {
         vm_address_t seat_addr = 0;
-        if (memory::read_value(task(), address() + offsets::HUMANOID_SEATPART, seat_addr)) {
+        if (memory::read_value(task(), address() + offsets::Humanoid::HUMANOID_SEATPART, seat_addr)) {
             return Instance(task(), seat_addr);
         }
         return {};
@@ -179,26 +179,26 @@ public:
     
     CFrame cframe() const {
         CFrame cf;
-        memory::read_value(task(), address() + offsets::CAMERA_CFRAME, cf);
+        memory::read_value(task(), address() + offsets::Camera::CAMERA_CFRAME, cf);
         return cf;
     }
     
     bool set_cframe(const CFrame& cf) const {
-        return write_property(offsets::CAMERA_CFRAME, cf);
+        return write_property(offsets::Camera::CAMERA_CFRAME, cf);
     }
 
     // field of view is in degrees
     float field_of_view() const {
-        return read_property<float>(offsets::CAMERA_FIELDOFVIEW).value_or(70.0f);
+        return read_property<float>(offsets::Camera::CAMERA_FIELDOFVIEW).value_or(70.0f);
     }
     
     bool set_field_of_view(float fov) const {
-        return write_property(offsets::CAMERA_FIELDOFVIEW, fov);
+        return write_property(offsets::Camera::CAMERA_FIELDOFVIEW, fov);
     }
     
     Instance camera_subject() const {
         vm_address_t subject_addr = 0;
-        if (memory::read_value(task(), address() + offsets::CAMERA_CAMERASUBJECT, subject_addr)) {
+        if (memory::read_value(task(), address() + offsets::Camera::CAMERA_CAMERASUBJECT, subject_addr)) {
             return Instance(task(), subject_addr);
         }
         return {};
@@ -221,7 +221,7 @@ public:
     
     Instance character() const {
         vm_address_t char_addr = 0;
-        if (memory::read_value(task(), address() + offsets::PLAYER_CHARACTER, char_addr)) {
+        if (memory::read_value(task(), address() + offsets::Player::PLAYER_CHARACTER, char_addr)) {
             return Instance(task(), char_addr);
         }
         return {};
@@ -229,22 +229,22 @@ public:
     
     Instance team() const {
         vm_address_t team_addr = 0;
-        if (memory::read_value(task(), address() + offsets::PLAYER_TEAM, team_addr)) {
+        if (memory::read_value(task(), address() + offsets::Player::PLAYER_TEAM, team_addr)) {
             return Instance(task(), team_addr);
         }
         return {};
     }
     
     std::optional<std::string> display_name() const {
-        return read_rbx_string_at(task(), address(), offsets::PLAYER_DISPLAYNAME);
+        return read_rbx_string_at(task(), address(), offsets::Player::PLAYER_DISPLAYNAME);
     }
     
     double last_input_timestamp() const {
-        return read_property<double>(offsets::PLAYER_LAST_INPUT_TIMESTAMP).value_or(0.0);
+        return read_property<double>(offsets::Player::PLAYER_LAST_INPUT_TIMESTAMP).value_or(0.0);
     }
     
     bool set_last_input_timestamp(double value) const {
-        return write_property(offsets::PLAYER_LAST_INPUT_TIMESTAMP, value);
+        return write_property(offsets::Player::PLAYER_LAST_INPUT_TIMESTAMP, value);
     }
     
     // Convenience: Get the HumanoidRootPart
@@ -272,7 +272,7 @@ public:
     
     BasePart primary_part() const {
         vm_address_t part_addr = 0;
-        if (memory::read_value(task(), address() + offsets::MODEL_PRIMARYPART, part_addr)) {
+        if (memory::read_value(task(), address() + offsets::ModelPrimative::MODEL_PRIMARYPART, part_addr)) {
             return BasePart(Instance(task(), part_addr));
         }
         return {};
@@ -294,7 +294,7 @@ public:
     Team(const Instance& inst) : Instance(inst) {}
     
     int brick_color() const {
-        return read_property<int>(offsets::TEAM_BRICKCOLOR).value_or(0);
+        return read_property<int>(offsets::Team::TEAM_BRICKCOLOR).value_or(0);
     }
 };
 
@@ -304,11 +304,11 @@ public:
     IntValue(const Instance& inst) : Instance(inst) {}
     
     int value() const {
-        return read_property<int>(offsets::INTVALUE_VALUE).value_or(0);
+        return read_property<int>(offsets::ValueObjects::INTVALUE_VALUE).value_or(0);
     }
     
     bool set_value(int v) const {
-        return write_property(offsets::INTVALUE_VALUE, v);
+        return write_property(offsets::ValueObjects::INTVALUE_VALUE, v);
     }
 };
 
@@ -318,7 +318,7 @@ public:
     StringValue(const Instance& inst) : Instance(inst) {}
     
     std::optional<std::string> value() const {
-        return read_rbx_string_at(task(), address(), offsets::STRINGVALUE_VALUE);
+        return read_rbx_string_at(task(), address(), offsets::ValueObjects::STRINGVALUE_VALUE);
     }
 };
 
@@ -329,7 +329,7 @@ public:
     Players(const Instance& inst) : Instance(inst) {}
     
     int max_players() const {
-        return read_property<int>(offsets::PLAYERS_MAXPLAYERS).value_or(0);
+        return read_property<int>(offsets::Players::PLAYERS_MAXPLAYERS).value_or(0);
     }
 
     Player local_player() const {

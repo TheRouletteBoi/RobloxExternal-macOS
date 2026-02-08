@@ -287,7 +287,7 @@ inline InjectionResult inject_dylib(const std::string& executable_name,
                 std::println("[INJECTION] Cannot verify {} (SIP/Permissions). Restarting...", executable_name);
                 needs_launch = true;
             } else if (!is_dylib_loaded(*task, dylib_name)) {
-                std::println("[INJECTION] {} is running but dyyyylib is missing. Restarting...", executable_name);
+                std::println("[INJECTION] {} is running but dylib is missing. Restarting...", executable_name);
                 needs_launch = true;
             } else {
                 std::println("[INJECTION] {} already injected.", dylib_name);

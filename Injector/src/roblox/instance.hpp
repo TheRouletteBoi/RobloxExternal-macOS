@@ -36,7 +36,7 @@ public:
             return false;
 
         vm_address_t self = 0;
-        if (!memory::read_value(m_task, m_address + offsets::INSTANCE_SELF, self)) {
+        if (!memory::read_value(m_task, m_address + offsets::Instance::INSTANCE_SELF, self)) {
             return false;
         }
         return self == m_address;
@@ -52,7 +52,7 @@ public:
     std::optional<std::string> name() const {
         if (!is_valid())
             return std::nullopt;
-        return read_rbx_string_at(m_task, m_address, offsets::INSTANCE_NAME);
+        return read_rbx_string_at(m_task, m_address, offsets::Instance::INSTANCE_NAME);
     }
     
     std::optional<std::string> class_name() const {
@@ -60,7 +60,7 @@ public:
             return std::nullopt;
         
         vm_address_t class_info_ptr = 0;
-        if (!memory::read_value(m_task, m_address + offsets::INSTANCE_CLASS_INFO, class_info_ptr)) {
+        if (!memory::read_value(m_task, m_address + offsets::Instance::INSTANCE_CLASS_INFO, class_info_ptr)) {
             return std::nullopt;
         }
         if (class_info_ptr == 0)
@@ -79,7 +79,7 @@ public:
             return {};
         
         vm_address_t parent_addr = 0;
-        if (!memory::read_value(m_task, m_address + offsets::INSTANCE_PARENT, parent_addr)) {
+        if (!memory::read_value(m_task, m_address + offsets::Instance::INSTANCE_PARENT, parent_addr)) {
             return {};
         }
         return Instance(m_task, parent_addr);
@@ -111,7 +111,7 @@ public:
             return result;
         
         vm_address_t children_info_ptr = 0;
-        if (!memory::read_value(m_task, m_address + offsets::INSTANCE_CHILDREN, children_info_ptr)) {
+        if (!memory::read_value(m_task, m_address + offsets::Instance::INSTANCE_CHILDREN, children_info_ptr)) {
             return result;
         }
         if (children_info_ptr == 0)
@@ -153,7 +153,7 @@ public:
             return 0;
         
         vm_address_t children_info_ptr = 0;
-        if (!memory::read_value(m_task, m_address + offsets::INSTANCE_CHILDREN, children_info_ptr)) {
+        if (!memory::read_value(m_task, m_address + offsets::Instance::INSTANCE_CHILDREN, children_info_ptr)) {
             return 0;
         }
         if (children_info_ptr == 0)

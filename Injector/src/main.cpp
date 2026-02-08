@@ -2,6 +2,7 @@
 #include "memory/memory.hpp"
 #include "macho/macho.hpp"
 #include "scanner/scanner.hpp"
+#include "dumper/dumper.hpp"
 #include "roblox.hpp"
 #include "esp_controller.hpp"
 #include "games.hpp"
@@ -23,7 +24,7 @@ class Application {
 public:
     Application(task_t task, ESPController& esp)
         : m_task(task), m_esp(esp), m_game(task), m_running(true),
-          m_profileFactory(games::create_default_factory())
+          m_dumper(dumper::DumperContext(task)), m_profileFactory(games::create_default_factory())
     {
         m_genericProfile = std::make_unique<games::GenericProfile>();
     }
@@ -40,6 +41,36 @@ public:
             std::println("Failed to find game after 60 seconds");
             return;
         }
+
+        // Wait for character to load
+        for (int i = 0; i < 30; i++) {
+            m_game.refresh_character();
+            if (m_game.my_hrp()) break;
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            std::println("Waiting for character... ({}/30)", i + 1);
+        }
+
+        dumper::DumperContext::LiveInstances live;
+        live.game = m_game.game().address();
+        live.workspace = m_game.workspace().address();
+        live.players = m_game.players().address();
+        live.camera = m_game.camera().address();
+        live.local_player = m_game.local_player().address();
+
+        m_game.refresh_character();
+        if (m_game.my_character()) {
+            live.character = m_game.my_character().address();
+
+            auto humanoid = m_game.my_humanoid();
+            if (humanoid) live.humanoid = humanoid.address();
+
+            auto hrp = m_game.my_hrp();
+            if (hrp) live.hrp = hrp.address();
+        }
+        m_dumper.find_studio_offsets(live);
+        m_dumper.print_found_offsets();
+
+
 
         std::println("Game found!");
         m_game.print_info();
@@ -62,6 +93,7 @@ private:
     ESPController& m_esp;
     roblox::GameContext m_game;
     std::atomic<bool> m_running;
+    dumper::DumperContext m_dumper;
 
     games::GameProfileFactory m_profileFactory;
     std::unique_ptr<games::GenericProfile> m_genericProfile;
@@ -489,7 +521,7 @@ void signal_handler(int sig) {
 
 int main(int argc, char* argv[]) {
     std::println("========================================");
-    std::println("    RobloxEspCPP (Injector)");
+    std::println("    RobloxEspCP (Injector)");
     std::println("========================================");
     std::println(" App Name    : RobloxEspCPP (Injector)");
     std::println(" Author      : TheRouLetteBoi");
