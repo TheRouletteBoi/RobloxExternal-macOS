@@ -23,7 +23,7 @@ public:
         return std::nullopt;
     }
 
-    std::optional<std::string> read_at_offset(vm_address_t instance, int offset) {
+    std::optional<std::string> read_at_offset(vm_address_t instance, uintptr_t offset) {
         vm_address_t string_ptr = 0;
         if (!memory::read_value(m_task, instance + offset, string_ptr)) {
             return std::nullopt;
@@ -39,7 +39,7 @@ inline std::optional<std::string> read_rbx_string(task_t task, vm_address_t stri
     return StringReader(task).read(string_ptr);
 }
 
-inline std::optional<std::string> read_rbx_string_at(task_t task, vm_address_t base, int offset) {
+inline std::optional<std::string> read_rbx_string_at(task_t task, vm_address_t base, uintptr_t offset) {
     return StringReader(task).read_at_offset(base, offset);
 }
 

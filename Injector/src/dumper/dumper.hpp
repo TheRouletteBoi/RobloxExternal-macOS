@@ -45,7 +45,7 @@ namespace constant_find {
 inline std::optional<std::string> try_read_string_at(
     task_t task,
     vm_address_t object_address,
-    int offset
+    uintptr_t offset
 ) {
     vm_address_t string_pointer = 0;
     if (!memory::read_value(task, object_address + offset, string_pointer) ||
@@ -71,7 +71,7 @@ inline std::optional<std::string> try_read_string_at(
 inline std::optional<std::string> read_class_name(
     task_t task,
     vm_address_t object_address,
-    int class_info_offset = 0x18
+    uintptr_t class_info_offset = 0x18
 ) {
     vm_address_t class_info = 0;
     if (!memory::read_value(task, object_address + class_info_offset, class_info) ||
@@ -295,15 +295,15 @@ private:
         std::println("  {} NOT FOUND", name);
     }
 
-    std::optional<int> scan_for_float(
+    std::optional<uintptr_t> scan_for_float(
         vm_address_t base_address,
         float target_value,
-        int start_offset,
-        int end_offset,
-        int alignment = 4,
+        uintptr_t start_offset,
+        uintptr_t end_offset,
+        uintptr_t alignment = 4,
         float tolerance = 0.01f
     ) {
-        for (int offset = start_offset; offset < end_offset; offset += alignment) {
+        for (auto offset = start_offset; offset < end_offset; offset += alignment) {
             float value = 0;
             if (memory::read_value(m_task, base_address + offset, value)) {
                 if (std::abs(value - target_value) < tolerance) {
@@ -314,15 +314,15 @@ private:
         return std::nullopt;
     }
 
-    std::optional<int> scan_for_vector3(
+    std::optional<uintptr_t> scan_for_vector3(
         vm_address_t base_address,
         const roblox::Vector3& target,
-        int start_offset,
-        int end_offset,
-        int alignment = 4,
+        uintptr_t start_offset,
+        uintptr_t end_offset,
+        uintptr_t alignment = 4,
         float tolerance = 0.01f
     ) {
-        for (int offset = start_offset; offset < end_offset; offset += alignment) {
+        for (auto offset = start_offset; offset < end_offset; offset += alignment) {
             roblox::Vector3 vec;
             if (memory::read_value(m_task, base_address + offset, vec)) {
                 if (std::abs(vec.x - target.x) < tolerance &&
@@ -335,13 +335,13 @@ private:
         return std::nullopt;
     }
 
-    std::optional<int> scan_for_pointer(
+    std::optional<uintptr_t> scan_for_pointer(
         vm_address_t base_address,
         vm_address_t target_pointer,
-        int start_offset,
-        int end_offset
+        uintptr_t start_offset,
+        uintptr_t end_offset
     ) {
-        for (int offset = start_offset; offset < end_offset; offset += 8) {
+        for (auto offset = start_offset; offset < end_offset; offset += 8) {
             vm_address_t pointer = 0;
             if (memory::read_value(m_task, base_address + offset, pointer)) {
                 if (pointer == target_pointer) {
@@ -352,14 +352,14 @@ private:
         return std::nullopt;
     }
 
-    std::vector<int> scan_for_cframes(
+    std::vector<uintptr_t> scan_for_cframes(
         vm_address_t base_address,
-        int start_offset,
-        int end_offset
+        uintptr_t start_offset,
+        uintptr_t end_offset
     ) {
-        std::vector<int> results;
+        std::vector<uintptr_t> results;
 
-        for (int offset = start_offset; offset < end_offset; offset += 4) {
+        for (auto offset = start_offset; offset < end_offset; offset += 4) {
             roblox::CFrame cframe;
             if (memory::read_value(m_task, base_address + offset, cframe)) {
                 if (is_valid_cframe(cframe)) {
@@ -394,7 +394,7 @@ private:
             constant_find::CAMERA_POSITION_Z
         };
 
-        for (int offset : scan_for_cframes(camera_address, 0x80, 0x150)) {
+        for (auto offset : scan_for_cframes(camera_address, 0x80, 0x150)) {
             roblox::CFrame cframe;
             memory::read_value(m_task, camera_address + offset, cframe);
 
@@ -408,7 +408,7 @@ private:
             }
         }
 
-        for (int offset = 0xc0; offset < 0x120; offset += 8) {
+        for (uintptr_t offset = 0xc0; offset < 0x120; offset += 8) {
             vm_address_t pointer = 0;
             if (memory::read_value(m_task, camera_address + offset, pointer) &&
                 pointer != 0) {
@@ -442,7 +442,7 @@ private:
             }
         }
 
-        for (int offset = 0x100; offset < 0x200; offset += 8) {
+        for (uintptr_t offset = 0x100; offset < 0x200; offset += 8) {
             auto display_name = try_read_string_at(m_task, player_address, offset);
             if (display_name && !display_name->empty()) {
                 set_offset_found("Player", "PLAYER_DISPLAYNAME",
@@ -451,7 +451,7 @@ private:
             }
         }
 
-        for (int offset = 0x200; offset < 0x300; offset += 8) {
+        for (uintptr_t offset = 0x200; offset < 0x300; offset += 8) {
             vm_address_t pointer = 0;
             if (memory::read_value(m_task, player_address + offset, pointer) &&
                 pointer != 0) {
@@ -465,7 +465,7 @@ private:
             }
         }
 
-        for (int offset = 0x260; offset < 0x2a0; offset += 4) {
+        for (uintptr_t offset = 0x260; offset < 0x2a0; offset += 4) {
             int64_t user_id = 0;
             if (memory::read_value(m_task, player_address + offset, user_id) &&
                 user_id > 0 && user_id < 10000000000LL) {
@@ -475,7 +475,7 @@ private:
             }
         }
 
-        for (int offset = 0x2a0; offset < 0x2e0; offset += 4) {
+        for (uintptr_t offset = 0x2a0; offset < 0x2e0; offset += 4) {
             int account_age = 0;
             if (memory::read_value(m_task, player_address + offset, account_age) &&
                 account_age >= 0 && account_age <= 10000) {
@@ -573,7 +573,7 @@ private:
             set_offset_failed("Humanoid", "HUMANOID_JUMPHEIGHT");
         }
 
-        for (int offset = 0xc0; offset < 0x100; offset += 8) {
+        for (uintptr_t offset = 0xc0; offset < 0x100; offset += 8) {
             auto display_name = try_read_string_at(m_task, humanoid_address, offset);
             if (display_name && !display_name->empty()) {
                 set_offset_found("Humanoid", "HUMANOID_DISPLAYNAME",
@@ -582,7 +582,7 @@ private:
             }
         }
 
-        for (int offset = 0x100; offset < 0x140; offset += 8) {
+        for (uintptr_t offset = 0x100; offset < 0x140; offset += 8) {
             vm_address_t pointer = 0;
             if (memory::read_value(m_task, humanoid_address + offset, pointer)) {
                 if (pointer == 0) {
@@ -600,7 +600,7 @@ private:
         vm_address_t properties_address = 0;
         std::optional<int> properties_offset;
 
-        for (int offset = 0x100; offset < 0x200; offset += 8) {
+        for (uintptr_t offset = 0x100; offset < 0x200; offset += 8) {
             vm_address_t pointer = 0;
             if (!memory::read_value(m_task, basepart_address + offset, pointer) ||
                 pointer == 0) {
@@ -653,7 +653,7 @@ private:
         );
 
         if (position_offset) {
-            int cframe_offset = *position_offset - 36; // Position is 36 bytes into CFrame
+            uintptr_t cframe_offset = *position_offset - 36; // Position is 36 bytes into CFrame
 
             roblox::CFrame cframe;
             if (memory::read_value(m_task, properties_address + cframe_offset, cframe) &&
@@ -664,7 +664,7 @@ private:
                 set_offset_found("Primitive", "BASEPART_PROPS_POSITION",
                                offsets::Primitive::BASEPART_PROPS_POSITION, *position_offset);
 
-                for (int delta = 0x30; delta <= 0x40; delta += 4) {
+                for (uintptr_t delta = 0x30; delta <= 0x40; delta += 4) {
                     roblox::Vector3 velocity;
                     if (memory::read_value(m_task, properties_address + cframe_offset + delta, velocity) &&
                         velocity.magnitude() < 1.0f) {
@@ -711,7 +711,7 @@ private:
             set_offset_failed("Primitive", "BASEPART_PROPS_SIZE");
         }
 
-        for (int offset = 0x170; offset < 0x1a0; offset += 4) {
+        for (uintptr_t offset = 0x170; offset < 0x1a0; offset += 4) {
             roblox::Vector3 color;
             if (memory::read_value(m_task, properties_address + offset, color) &&
                 color.x >= 0.0f && color.x <= 1.0f &&
@@ -723,7 +723,7 @@ private:
             }
         }
 
-        for (int offset = 0xe0; offset < 0x110; offset += 4) {
+        for (uintptr_t offset = 0xe0; offset < 0x110; offset += 4) {
             float transparency = 0;
             if (memory::read_value(m_task, properties_address + offset, transparency) &&
                 transparency >= 0.0f && transparency <= 1.0f) {
@@ -756,7 +756,7 @@ private:
             }
         }
 
-        for (int offset = 0x100; offset < 0x200; offset += 4) {
+        for (uintptr_t offset = 0x100; offset < 0x200; offset += 4) {
             int max_players = 0;
             if (memory::read_value(m_task, players_address + offset, max_players) &&
                 max_players > 0 && max_players <= 700) {

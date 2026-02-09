@@ -380,7 +380,7 @@ void esp_initialize() {
         return;
 
     std::println("\n========================================");
-    std::println("        RobloxExternal-macOS DYLIB LOADED");
+    std::println("   RobloxExternal-macOS DYLIB LOADED");
     std::println("========================================");
     std::println(" App Name    : RobloxExternal-macOS (DYLIB)");
     std::println(" Author      : TheRouLetteBoi");
@@ -402,7 +402,7 @@ void esp_initialize() {
 __attribute__((destructor))
 void esp_cleanup() {
     std::println("\n========================================");
-    std::println("    RobloxExternal-macOS DYLIB UNLOADING");
+    std::println("   RobloxExternal-macOS DYLIB UNLOADING");
     std::println("========================================\n");
     
     g_manager.reset();
