@@ -61,3 +61,5 @@ cmake --build . --parallel
 ## Credits
 
 - Inspired by [notahacker8/RobloxCheats](https://github.com/notahacker8/RobloxCheats)
+- Thanks to [@c7a2d9e](https://github.com/c7a2d9e) for probing rtti on macos
+- nopjo roblox dumper source [roblox-dumper](https://github.com/nopjo/roblox-dumper)
