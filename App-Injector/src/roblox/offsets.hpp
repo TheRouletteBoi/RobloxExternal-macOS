@@ -27,7 +27,7 @@ namespace offsets {
         inline uintptr_t PLAYER_CHARACTER = 0x338;
         inline uintptr_t PLAYER_TEAM = 0x248;
         inline uintptr_t PLAYER_DISPLAYNAME = 0x118;
-        inline uintptr_t PLAYER_LAST_INPUT_TIMESTAMP = 0xb70;
+        inline uintptr_t PLAYER_LAST_INPUT_TIMESTAMP = 0xb98;
         inline uintptr_t PLAYER_USERID = 0x270;
         inline uintptr_t PLAYER_ACCOUNTAGE = 0x2c4;
     }
