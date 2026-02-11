@@ -1,6 +1,6 @@
 # Roblox ESP (macOS)
 
-A macOS ESP providing **ESP support for any Roblox game**.
+A macOS **ESP for almost any Roblox game**.
 
 ---
 
@@ -37,7 +37,12 @@ To inject into protected processes on macOS, **System Integrity Protection (SIP)
 
 ## Build Instructions
 
-GUI
+You must clone the project recursively in order to compile it because it uses submodules
+```bash 
+git clone --recursive https://github.com/TheRouletteBoi/RobloxExternal-macOS.git
+```
+
+GUI build requires [vulkan SDK](https://vulkan.lunarg.com/sdk/home)
 ```bash
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
