@@ -19,6 +19,8 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 	spec.IconPath = "res/Walnut-Icon.png";
 	spec.CustomTitlebar = true;
 	spec.CenterWindow = true;
+	spec.Width = 800;
+	spec.Height = 600;
 #endif
 
 	Walnut::Application* app = new Walnut::Application(spec);
