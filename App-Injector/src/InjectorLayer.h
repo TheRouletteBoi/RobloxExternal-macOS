@@ -41,7 +41,7 @@ private:
 	bool InitializeESP();
 	bool InitializeGame();
 	bool InitializeDumper();
-	void WaitForCharacterAndUpdateOffsets();
+	void DumpStudioOffsets();
 	void DetectGameProfile();
 
 	void StartCharacterRefreshThread();
@@ -88,7 +88,7 @@ private:
 	bool m_gameFound = false;
 	std::string m_statusMessage = "Initializing...";
 	std::string m_currentGameName = "Unknown";
-	uint64_t m_placeId = 0;
+	int64_t m_placeId = 0;
 
 	bool m_showDebugPanel = false;
 	bool m_showGameInfo = true;

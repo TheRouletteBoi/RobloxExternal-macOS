@@ -84,8 +84,7 @@ void InjectorLayer::OnAttach()
 		return;
 	}
 
-	WaitForCharacterAndUpdateOffsets();
-	DetectGameProfile();
+	DumpStudioOffsets();
 	StartCharacterRefreshThread();
 	StartAntiAFKThread();
 #ifdef WL_HEADLESS
@@ -178,13 +177,10 @@ bool InjectorLayer::InitializeGame()
 	}
 }
 
-void InjectorLayer::WaitForCharacterAndUpdateOffsets()
+void InjectorLayer::DumpStudioOffsets()
 {
-	std::println("Waiting for character...");
-	if (!m_game->wait_for_character(60)) {
-		std::println("Failed to find character after 60 seconds");
+	if (!m_game)
 		return;
-	}
 
 	std::println("Character: {:#X}", m_game->my_hrp().address());
 
@@ -208,14 +204,6 @@ void InjectorLayer::WaitForCharacterAndUpdateOffsets()
 	}
 	m_dumper->find_studio_offsets(live);
 	m_dumper->print_found_offsets();
-
-
-	std::println("Game found!");
-	m_placeId = m_game->place_id();
-	m_gameFound = true;
-
-	m_game->print_info();
-	std::println("\nDetecting game profile for PlaceId: {}", m_placeId);
 }
 
 void InjectorLayer::ReloadDylib()
@@ -253,10 +241,38 @@ void InjectorLayer::DetectGameProfile()
 void InjectorLayer::StartCharacterRefreshThread()
 {
 	m_characterRefreshThread = std::thread([this]() {
+		int64_t lastPlaceId = 0;
+
 		while (m_running) {
 			if (m_game) {
-				m_game->refresh_character();
+				int64_t currentPlaceId = m_game->place_id();
+				std::println("Place ID: {}", currentPlaceId);
+
+				if (currentPlaceId != 0 && currentPlaceId != lastPlaceId) {
+					std::println("Place ID changed: {} -> {}", lastPlaceId, currentPlaceId);
+					lastPlaceId = currentPlaceId;
+
+					m_placeId = currentPlaceId;
+					m_gameFound = true;
+					//std::println("Game found!");
+					//m_game->print_info();
+
+					std::println("Detecting game profile for PlaceId: {}", currentPlaceId);
+					DetectGameProfile();
+
+					m_statusMessage = "Connected and running";
+					m_isConnected = true;
+				}
+
+				if (lastPlaceId != 0 && currentPlaceId == 0) {
+					std::println("Place ID lost, waiting for rejoin...");
+					m_statusMessage = "Waiting for game...";
+					m_isConnected = false;
+					lastPlaceId = 0;
+					m_gameFound = false;
+				}
 			}
+
 			std::this_thread::sleep_for(std::chrono::seconds(1));
 		}
 	});
@@ -767,6 +783,10 @@ void InjectorLayer::UI_TargetSelectionControls()
 	ImGui::RadioButton("Closest Distance", &m_targetSelectionGui, 1);
 	ImGui::RadioButton("Lowest Health", &m_targetSelectionGui, 2);
 	ImGui::RadioButton("Closest to Mouse", &m_targetSelectionGui, 3);
+	if (auto* pf = dynamic_cast<games::PhantomForcesProfile*>(m_activeProfile)) {
+		if (ImGui::Button("Team Switch"))
+			pf->switch_teams();
+	}
 
 	ImGui::End();
 }
