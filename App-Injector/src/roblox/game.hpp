@@ -75,13 +75,13 @@ public:
         return is_valid();
     }
 
-    uint64_t place_id() const {
+    int64_t place_id() const {
         if (!m_game)
             return 0;
 
         int64_t pid = 0;
         memory::read_value(m_task, m_game.address() + offsets::DataModel::DATAMODEL_PLACEID, pid);
-        return static_cast<uint64_t>(pid);
+        return pid;
     }
     
     std::optional<std::string> job_id() const {
