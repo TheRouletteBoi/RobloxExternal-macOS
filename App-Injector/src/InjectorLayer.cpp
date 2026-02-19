@@ -158,16 +158,16 @@ bool InjectorLayer::InitializeESP()
 bool InjectorLayer::InitializeGame()
 {
 	try {
-		m_game = std::make_unique<roblox::GameContext>(m_task);
+		m_dataModel = std::make_unique<roblox::GameContext>(m_task);
 
-		if (!m_game) {
+		if (!m_dataModel) {
 			std::println("Failed to find game");
 			return false;
 		}
 
-		std::println("Game: {:#X}", m_game->game().address());
+		std::println("Game: {:#X}", m_dataModel->game().address());
 
-		if (!m_game->is_valid()) {
+		if (!m_dataModel->is_valid()) {
 			return false;
 		}
 		return true;
@@ -179,27 +179,27 @@ bool InjectorLayer::InitializeGame()
 
 void InjectorLayer::DumpStudioOffsets()
 {
-	if (!m_game)
+	if (!m_dataModel)
 		return;
 
-	std::println("Character: {:#X}", m_game->my_hrp().address());
+	std::println("Character: {:#X}", m_dataModel->my_hrp().address());
 
 	// TODO(Roulette): move this into a function in dumper named update_offsets()
 	dumper::DumperContext::LiveInstances live;
-	live.game = m_game->game().address();
-	live.workspace = m_game->workspace().address();
-	live.players = m_game->players().address();
-	live.camera = m_game->camera().address();
-	live.local_player = m_game->local_player().address();
+	live.game = m_dataModel->game().address();
+	live.workspace = m_dataModel->workspace().address();
+	live.players = m_dataModel->players().address();
+	live.camera = m_dataModel->camera().address();
+	live.local_player = m_dataModel->local_player().address();
 
-	m_game->refresh_character();
-	if (m_game->my_character()) {
-		live.character = m_game->my_character().address();
+	m_dataModel->refresh_character();
+	if (m_dataModel->my_character()) {
+		live.character = m_dataModel->my_character().address();
 
-		auto humanoid = m_game->my_humanoid();
+		auto humanoid = m_dataModel->my_humanoid();
 		if (humanoid) live.humanoid = humanoid.address();
 
-		auto hrp = m_game->my_hrp();
+		auto hrp = m_dataModel->my_hrp();
 		if (hrp) live.hrp = hrp.address();
 	}
 	m_dumper->find_studio_offsets(live);
@@ -216,18 +216,18 @@ void InjectorLayer::ReloadDylib()
 
 void InjectorLayer::DetectGameProfile()
 {
-	if (!m_game)
+	if (!m_dataModel)
 		return;
 
-	m_activeProfile = m_profileFactory->detect_game(*m_game);
+	m_activeProfile = m_profileFactory->detect_game(*m_dataModel);
 
 	if (m_activeProfile) {
 		m_currentGameName = m_activeProfile->name();
-		m_activeProfile->initialize(*m_game);
+		m_activeProfile->initialize(*m_dataModel);
 	} else {
 		m_currentGameName = "Generic (No specific profile)";
 		m_activeProfile = m_genericProfile.get();
-		m_genericProfile->initialize(*m_game);
+		m_genericProfile->initialize(*m_dataModel);
 	}
 
 	m_aimSettings->aim_key = m_activeProfile->default_aim_key();
@@ -244,8 +244,8 @@ void InjectorLayer::StartCharacterRefreshThread()
 		int64_t lastPlaceId = 0;
 
 		while (m_running) {
-			if (m_game) {
-				int64_t currentPlaceId = m_game->place_id();
+			if (m_dataModel) {
+				int64_t currentPlaceId = m_dataModel->place_id();
 				std::println("Place ID: {}", currentPlaceId);
 
 				if (currentPlaceId != 0 && currentPlaceId != lastPlaceId) {
@@ -282,8 +282,8 @@ void InjectorLayer::StartAntiAFKThread()
 {
 	m_antiAFKThread = std::thread([this]() {
 		while (m_running) {
-			if (m_game) {
-				auto local = m_game->local_player();
+			if (m_dataModel) {
+				auto local = m_dataModel->local_player();
 				if (local) {
 					local.set_last_input_timestamp(9999999.0);
 				}
@@ -307,7 +307,7 @@ void InjectorLayer::StartESPThread()
 			m_currentFPS = 1.0f / deltaTime;
 
 			if (m_activeProfile) {
-				m_activeProfile->update(*m_game);
+				m_activeProfile->update(*m_dataModel);
 			}
 
 			UpdateProfileScreenSize();
@@ -357,7 +357,7 @@ bool InjectorLayer::IsAimKeyHeld() const
 
 void InjectorLayer::UpdateESPAndAim(float deltaTime)
 {
-	if (!m_espController || !m_game || !m_activeProfile)
+	if (!m_espController || !m_dataModel || !m_activeProfile)
 		return;
 
 #ifndef WL_HEADLESS
@@ -376,7 +376,7 @@ void InjectorLayer::UpdateESPAndAim(float deltaTime)
 	m_aimSettings->aim_key = static_cast<games::AimKey>(m_aimKeyGui);
 #endif
 
-	auto camera = m_game->camera();
+	auto camera = m_dataModel->camera();
 	if (!camera) {
 		m_espController->clear_esp();
 		return;
@@ -389,7 +389,7 @@ void InjectorLayer::UpdateESPAndAim(float deltaTime)
 
 	m_activeProfile->set_mouse_position(m_espController->mouse_x(), m_espController->mouse_y());
 
-	auto targets = m_activeProfile->find_targets(*m_game, camera_cf, fov);
+	auto targets = m_activeProfile->find_targets(*m_dataModel, camera_cf, fov);
 
 	if (targets.empty()) {
 		m_espController->clear_esp();
@@ -450,9 +450,9 @@ void InjectorLayer::UpdateESPAndAim(float deltaTime)
 
 	if (aim_held && best_target && m_aimSettings->enabled) {
 		if (m_aimSettings->selection == games::TargetSelection::ClosestToMouse) {
-			m_activeProfile->apply_aim_mouse(*best_target, *m_game, camera_cf, *m_aimSettings, *m_espController);
+			m_activeProfile->apply_aim_mouse(*best_target, *m_dataModel, camera_cf, *m_aimSettings, *m_espController);
 		} else {
-			m_activeProfile->apply_aim(*best_target, *m_game, camera_cf, *m_aimSettings);
+			m_activeProfile->apply_aim(*best_target, *m_dataModel, camera_cf, *m_aimSettings);
 		}
 
 		static int aim_log_counter = 0;
@@ -534,7 +534,7 @@ void InjectorLayer::ShowHotkeys()
 
 void InjectorLayer::HandleHotkeys()
 {
-	if (!m_espController || !m_game || !m_activeProfile)
+	if (!m_espController || !m_dataModel || !m_activeProfile)
 		return;
 
 	if (m_espController->was_key_pressed('|')) {
@@ -696,8 +696,8 @@ void InjectorLayer::UI_GameInfo()
 	ImGui::Text("Game: %s", m_currentGameName.c_str());
 	ImGui::Text("Place ID: %llu", m_placeId);
 
-	if (m_game) {
-		auto jobId = m_game->job_id();
+	if (m_dataModel) {
+		auto jobId = m_dataModel->job_id();
 		if (jobId) {
 			ImGui::Text("Job ID: %s", jobId->c_str());
 		}
@@ -804,10 +804,10 @@ void InjectorLayer::UI_DebugPanel()
 			m_espController->mouse_y());
 	}
 
-	if (m_game) {
-		ImGui::Text("Game Valid: %s", m_game->is_valid() ? "Yes" : "No");
+	if (m_dataModel) {
+		ImGui::Text("Game Valid: %s", m_dataModel->is_valid() ? "Yes" : "No");
 
-		auto camera = m_game->camera();
+		auto camera = m_dataModel->camera();
 		if (camera) {
 			ImGui::Text("Camera FOV: %.1f", camera.field_of_view());
 		}

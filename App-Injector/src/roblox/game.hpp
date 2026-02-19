@@ -20,16 +20,16 @@ public:
     }
 
     void refresh() {
-        m_game = find_game();
-        if (!m_game) return;
+        m_data_model = get_data_model();
+        if (!m_data_model) return;
 
-        m_workspace = Workspace(m_game.find_first_child_of_class("Workspace"));
-        m_players = Players(m_game.find_first_child_of_class("Players"));
-        m_replicated_storage = m_game.find_first_child_of_class("ReplicatedStorage");
-        m_replicated_first = m_game.find_first_child_of_class("ReplicatedFirst");
-        m_lighting = m_game.find_first_child_of_class("Lighting");
-        m_teams = m_game.find_first_child_of_class("Teams");
-        m_core_gui = m_game.find_first_child_of_class("CoreGui");
+        m_workspace = Workspace(m_data_model.find_first_child_of_class("Workspace"));
+        m_players = Players(m_data_model.find_first_child_of_class("Players"));
+        m_replicated_storage = m_data_model.find_first_child_of_class("ReplicatedStorage");
+        m_replicated_first = m_data_model.find_first_child_of_class("ReplicatedFirst");
+        m_lighting = m_data_model.find_first_child_of_class("Lighting");
+        m_teams = m_data_model.find_first_child_of_class("Teams");
+        m_core_gui = m_data_model.find_first_child_of_class("CoreGui");
 
         if (m_workspace) {
             m_camera = m_workspace.current_camera();
@@ -52,7 +52,7 @@ public:
 
     task_t task() const { return m_task; }
     
-    Instance game() const { return m_game; }
+    Instance game() const { return m_data_model; }
     Workspace workspace() const { return m_workspace; }
     Players players() const { return m_players; }
     Camera camera() const { return m_camera; }
@@ -68,7 +68,7 @@ public:
     Humanoid my_humanoid() const { return m_my_humanoid; }
 
     bool is_valid() const {
-        return m_game.is_valid();
+        return m_data_model.is_valid();
     }
     
     explicit operator bool() const {
@@ -76,18 +76,18 @@ public:
     }
 
     int64_t place_id() const {
-        if (!m_game)
+        if (!m_data_model)
             return 0;
 
         int64_t pid = 0;
-        memory::read_value(m_task, m_game.address() + offsets::DataModel::DATAMODEL_PLACEID, pid);
+        memory::read_value(m_task, m_data_model.address() + offsets::DataModel::DATAMODEL_PLACEID, pid);
         return pid;
     }
     
     std::optional<std::string> job_id() const {
-        if (!m_game)
+        if (!m_data_model)
             return std::nullopt;
-        return read_rbx_string_at(m_task, m_game.address(), offsets::DataModel::DATAMODEL_JOBID);
+        return read_rbx_string_at(m_task, m_data_model.address(), offsets::DataModel::DATAMODEL_JOBID);
     }
 
     static GameContext wait_for_game(task_t task, int timeout_seconds = 60) {
@@ -135,8 +135,8 @@ public:
         }
         std::println("");
         
-        if (m_game) {
-            m_game.print_tree(2);
+        if (m_data_model) {
+            m_data_model.print_tree(2);
         }
     }
     
@@ -144,7 +144,7 @@ private:
     task_t m_task;
     vm_address_t m_image_base = 0;
 
-    Instance m_game;
+    Instance m_data_model;
     Workspace m_workspace;
     Players m_players;
     Camera m_camera;
@@ -160,7 +160,7 @@ private:
     BasePart m_my_hrp;
     Humanoid m_my_humanoid;
 
-    Instance find_game() {
+    Instance get_data_model() {
         auto image = macho::get_image_info(m_task, "RobloxPlayer");
         if (image.base == 0) {
             std::println("Failed to find RobloxPlayer image");
@@ -170,11 +170,11 @@ private:
 
         auto datamodel = dumper::find_datamodel(m_task, m_image_base);
         if (datamodel) {
-            Instance game_instance(m_task, *datamodel);
-            auto children = game_instance.children();
+            Instance datamodel_instance(m_task, *datamodel);
+            auto children = datamodel_instance.children();
             // if it has children and it's likely valid
             if (children.size() > 5)
-                return game_instance;
+                return datamodel_instance;
         }
 
         std::println("[GameContext] RTTI scanner failed...");

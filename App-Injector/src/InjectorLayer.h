@@ -68,7 +68,7 @@ private:
 private:
 	std::unique_ptr<dumper::DumperContext> m_dumper;
 	std::unique_ptr<ESPController> m_espController;
-	std::unique_ptr<roblox::GameContext> m_game;
+	std::unique_ptr<roblox::GameContext> m_dataModel;
 	std::unique_ptr<games::GameProfileFactory> m_profileFactory;
 	std::unique_ptr<games::GenericProfile> m_genericProfile;
 	games::GameProfile* m_activeProfile = nullptr;
