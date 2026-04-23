@@ -10,6 +10,11 @@
 #include <chrono>
 #include <cmath>
 
+/*
+ * there is a huge bug where memory addresses are cached and i think its data_model because we only retrieve it once at start up
+ * but we might need to grab it on update
+ */
+
 namespace config {
 	constexpr const char* APP_NAME = "RobloxPlayer";
 	constexpr const char* SHM_PATH = "/tmp/esp_shared_memory";
@@ -61,7 +66,8 @@ void InjectorLayer::OnAttach()
 	m_aimSettings = std::make_unique<games::AimSettings>();
 
 	if (!InitializeInjection()) {
-		m_statusMessage = "Failed to inject into RobloxPlayer\nMake sure the app is running and you have SIP Disabled.";
+		m_injectionResult.success = false;
+		m_statusMessage = std::format("{}\n{}", m_injectionResult.reason, "Failed to inject into RobloxPlayer\nMake sure the app is running and you have SIP Disabled.\n");
 		std::println("{}", m_statusMessage);
 		return;
 	}
@@ -86,7 +92,7 @@ void InjectorLayer::OnAttach()
 
 	DumpStudioOffsets();
 	StartCharacterRefreshThread();
-	StartAntiAFKThread();
+	//StartAntiAFKThread();
 #ifdef WL_HEADLESS
 	ShowHotkeys();
 #endif
@@ -111,19 +117,19 @@ void InjectorLayer::OnUpdate(float ts)
 
 bool InjectorLayer::InitializeInjection()
 {
-	auto injection_result = process::inject_dylib(
+	m_injectionResult = process::inject_dylib(
 		config::APP_NAME,
 		config::DYLIB_NAME,
 		process::InjectionMode::AUTO,
 		false
 	);
 
-	if (!injection_result.success) {
+	if (!m_injectionResult.success) {
 		return false;
 	}
 
-	m_task = injection_result.task;
-	m_pid = injection_result.pid;
+	m_task = m_injectionResult.task;
+	m_pid = m_injectionResult.pid;
 	return true;
 }
 
@@ -192,15 +198,23 @@ void InjectorLayer::DumpStudioOffsets()
 	live.camera = m_dataModel->camera().address();
 	live.local_player = m_dataModel->local_player().address();
 
+	std::println("live.game: {:#X}", live.game);
+	std::println("live.workspace: {:#X}", live.workspace);
+	std::println("live.players: {:#X}", live.players);
+	std::println("live.camera: {:#X}", live.camera);
+	std::println("live.local_player: {:#X}", live.local_player);
+
 	m_dataModel->refresh_character();
 	if (m_dataModel->my_character()) {
 		live.character = m_dataModel->my_character().address();
 
 		auto humanoid = m_dataModel->my_humanoid();
-		if (humanoid) live.humanoid = humanoid.address();
+		if (humanoid)
+			live.humanoid = humanoid.address();
 
 		auto hrp = m_dataModel->my_hrp();
-		if (hrp) live.hrp = hrp.address();
+		if (hrp)
+			live.hrp = hrp.address();
 	}
 	m_dumper->find_studio_offsets(live);
 	m_dumper->print_found_offsets();
@@ -392,6 +406,7 @@ void InjectorLayer::UpdateESPAndAim(float deltaTime)
 	auto targets = m_activeProfile->find_targets(*m_dataModel, camera_cf, fov);
 
 	if (targets.empty()) {
+		std::println("there are no targets");
 		m_espController->clear_esp();
 		return;
 	}

@@ -76,6 +76,7 @@ private:
 
 	task_t m_task = 0;
 	pid_t m_pid = 0;
+	process::InjectionResult m_injectionResult{};
 
 	std::atomic<bool> m_running{true};
 	std::atomic<bool> m_espThreadRunning{false};

@@ -116,6 +116,7 @@ struct InjectionResult {
     bool success;
     task_t task;
     pid_t pid;
+    std::string reason;
 
     explicit operator bool() const { return success; }
 };
@@ -257,12 +258,18 @@ inline InjectionResult inject_dylib(const std::string& executable_name,
                                     const std::string& dylib_name,
                                     InjectionMode mode,
                                     bool verbose = false) {
-    InjectionResult result{false, MACH_PORT_NULL, -1};
+    InjectionResult result{false, MACH_PORT_NULL, -1, ""};
 
     std::string dylib_path = find_dylib(dylib_name);
     if (dylib_path.empty()) {
-        std::println("[INJECTION] Cannot launch: dylib '{}' not found in injector directory", dylib_name);
-        std::println("[INJECTION] Expected location: {}/{}", get_executable_directory().string(), dylib_name);
+        std::string message = std::format(
+            "[INJECTION] Cannot launch: dylib '{}' not found in injector directory\n"
+            "[INJECTION] Expected location: {}/{}\n",
+            dylib_name,
+            get_executable_directory().string(),
+            dylib_name);
+        result.reason = message;
+        std::println("{}", message);
         return result;
     }
 
