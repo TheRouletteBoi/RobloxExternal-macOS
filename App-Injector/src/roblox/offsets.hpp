@@ -24,8 +24,8 @@ namespace offsets {
     }
 
     namespace Player {
-        inline uintptr_t PLAYER_CHARACTER = 0x338;
-        inline uintptr_t PLAYER_TEAM = 0x248;
+        inline uintptr_t PLAYER_CHARACTER = 0x350;
+        inline uintptr_t PLAYER_TEAM = 0x258;
         inline uintptr_t PLAYER_DISPLAYNAME = 0x118;
         inline uintptr_t PLAYER_LAST_INPUT_TIMESTAMP = 0xb98;
         inline uintptr_t PLAYER_USERID = 0x270;
@@ -33,7 +33,7 @@ namespace offsets {
     }
 
     namespace Players {
-        inline uintptr_t PLAYERS_MAXPLAYERS = 0x124;
+        inline uintptr_t PLAYERS_MAXPLAYERS = 0x130;
         inline uintptr_t PLAYERS_LOCALPLAYER = 0x120;
     }
 
